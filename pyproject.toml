@@ -1,0 +1,56 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "pinpad-analyzer"
+version = "0.1.0"
+description = "POS Pinpad Log Analysis System with ML-powered issue detection"
+requires-python = ">=3.10"
+dependencies = [
+    "polars>=1.0",
+    "duckdb>=0.10",
+    "typer>=0.12",
+    "pydantic>=2.0",
+    "scikit-learn>=1.4",
+    "rich>=13.0",
+]
+
+[project.optional-dependencies]
+ml = [
+    "xgboost>=2.0",
+    "hdbscan>=0.8",
+    "drain3>=0.9",
+]
+api = [
+    "fastapi>=0.110",
+    "uvicorn>=0.29",
+]
+cloud = [
+    "google-cloud-storage>=2.14",
+    "watchdog>=4.0",
+]
+cloud-pubsub = [
+    "google-cloud-pubsub>=2.19",
+]
+cloud-run = [
+    "fastapi>=0.110",
+    "uvicorn>=0.29",
+    "google-cloud-storage>=2.14",
+    "google-cloud-pubsub>=2.19",
+    "pyarrow>=14.0",
+]
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=5.0",
+]
+
+[project.scripts]
+pinpad-analyzer = "pinpad_analyzer.cli.app:app"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/pinpad_analyzer"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]

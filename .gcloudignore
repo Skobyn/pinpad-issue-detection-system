@@ -1,0 +1,27 @@
+# Only send src/, pyproject.toml, Dockerfile to Cloud Build
+.git/
+logs/
+data/
+infra/
+docs/
+tests/
+.terraform/
+.claude/
+.swarm/
+node_modules/
+__pycache__/
+*.pyc
+*.tfstate
+*.tfstate.backup
+.pytest_cache/
+.env
+*.duckdb
+*.duckdb.wal
+*.zip
+*.txt
+!src/**/*.txt
+CLAUDE.md
+package-lock.json
+package.json
+.gitignore
+.gcloudignore

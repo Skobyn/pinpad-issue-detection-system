@@ -1,0 +1,46 @@
+# Environment
+.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+
+# DuckDB
+data/*.duckdb
+data/*.duckdb.wal
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.backup
+*.tfplan
+infra/terraform/terraform.tfvars
+
+# IDE
+.vscode/
+.idea/
+
+# Large files & logs
+logs/
+data/
+*.zip
+*.gz
+jrnl*.txt
+
+# Node
+node_modules/
+package-lock.json
+
+# Claude Flow / Swarm
+.claude/
+.swarm/
+.claude-flow/
+
+# OS
+.DS_Store
+Thumbs.db

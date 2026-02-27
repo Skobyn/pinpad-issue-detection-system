@@ -1,0 +1,6 @@
+project_id       = "my-gcp-project"
+region           = "us-central1"
+bucket_name      = "pinpad-logs"
+pinpad_db        = "md:pinpad_analyzer"
+motherduck_token = "your-motherduck-token-here"
+github_repo      = "owner/repo-name"

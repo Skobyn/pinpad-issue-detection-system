@@ -1,0 +1,75 @@
+name: Deploy to Cloud Run
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "Dockerfile"
+      - "pyproject.toml"
+      - "infra/**"
+
+env:
+  REGION: us-central1
+  AR_REPO: pinpad
+  IMAGE_NAME: processor
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write  # Required for Workload Identity Federation
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Authenticate to GCP
+        id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
+          service_account: ${{ secrets.WIF_SA_EMAIL }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker ${REGION}-docker.pkg.dev --quiet
+
+      - name: Build and push Docker image
+        run: |
+          IMAGE="${REGION}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${AR_REPO}/${IMAGE_NAME}"
+          docker build -t "${IMAGE}:${GITHUB_SHA}" -t "${IMAGE}:latest" .
+          docker push "${IMAGE}:${GITHUB_SHA}"
+          docker push "${IMAGE}:latest"
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "~> 1.7"
+
+      - name: Terraform Init
+        working-directory: infra/terraform
+        run: terraform init -backend-config="bucket=${{ secrets.TF_STATE_BUCKET }}"
+
+      - name: Terraform Plan
+        working-directory: infra/terraform
+        run: |
+          terraform plan \
+            -var="project_id=${{ secrets.GCP_PROJECT_ID }}" \
+            -var="motherduck_token=${{ secrets.MOTHERDUCK_TOKEN }}" \
+            -var="github_repo=${{ github.repository }}" \
+            -out=tfplan
+
+      - name: Terraform Apply
+        working-directory: infra/terraform
+        run: terraform apply -auto-approve tfplan
+
+      - name: Deploy new image to Cloud Run
+        run: |
+          IMAGE="${REGION}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${AR_REPO}/${IMAGE_NAME}"
+          gcloud run services update pinpad-processor \
+            --region="${REGION}" \
+            --image="${IMAGE}:${GITHUB_SHA}"
