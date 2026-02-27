@@ -288,3 +288,10 @@ resource "google_project_iam_member" "github_sa_user" {
   role    = "roles/iam.serviceAccountUser"
   member  = "serviceAccount:${google_service_account.github_actions.email}"
 }
+
+# GitHub Actions SA -> Terraform state bucket (for CI/CD terraform operations)
+resource "google_storage_bucket_iam_member" "github_tfstate_access" {
+  bucket = "${var.project_id}-tfstate"
+  role   = "roles/storage.objectAdmin"
+  member = "serviceAccount:${google_service_account.github_actions.email}"
+}

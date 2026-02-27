@@ -7,7 +7,6 @@ on:
       - "src/**"
       - "Dockerfile"
       - "pyproject.toml"
-      - "infra/**"
 
 env:
   REGION: us-central1
@@ -44,28 +43,6 @@ jobs:
           docker build -t "${IMAGE}:${GITHUB_SHA}" -t "${IMAGE}:latest" .
           docker push "${IMAGE}:${GITHUB_SHA}"
           docker push "${IMAGE}:latest"
-
-      - name: Set up Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: "~> 1.7"
-
-      - name: Terraform Init
-        working-directory: infra/terraform
-        run: terraform init -backend-config="bucket=${{ secrets.TF_STATE_BUCKET }}"
-
-      - name: Terraform Plan
-        working-directory: infra/terraform
-        run: |
-          terraform plan \
-            -var="project_id=${{ secrets.GCP_PROJECT_ID }}" \
-            -var="motherduck_token=${{ secrets.MOTHERDUCK_TOKEN }}" \
-            -var="github_repo=${{ github.repository }}" \
-            -out=tfplan
-
-      - name: Terraform Apply
-        working-directory: infra/terraform
-        run: terraform apply -auto-approve tfplan
 
       - name: Deploy new image to Cloud Run
         run: |
